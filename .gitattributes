@@ -1,0 +1,2 @@
+# Preserve source hashes and predictable checks across Windows and Linux checkouts.
+* text=auto eol=lf

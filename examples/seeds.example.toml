@@ -1,0 +1,7 @@
+# Public starter configuration. Copy to seeds.toml and choose your own sources.
+# The root seeds.toml is a private local input and is never published.
+[[seed]]
+url = "https://www.youtube.com/@BlenderOfficial/videos"
+match = "animation|geometry|simulation|rendering"
+limit = 10
+tier = 2

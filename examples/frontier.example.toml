@@ -1,0 +1,8 @@
+# Public starter configuration. Copy to frontier.toml before running autopilot.
+# Personal bundles and discovery choices belong only in the ignored local file.
+[[feed]]
+kind = "page"
+url = "https://docs.blender.org/manual/en/latest/"
+title = "Blender manual"
+every_hours = 168
+limit = 3

@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__</title>
+<style>
+:root {
+  --bg: #0e0f13; --panel: #16181f; --panel-2: #1d2029; --line: #2a2e3a;
+  --text: #e9eaf0; --muted: #9aa0b1; --faint: #6b7182;
+  --accent: #8ab4ff; --warn: #e8c267; --inferred: #c89bff;
+  --shadow: 0 10px 30px rgba(0,0,0,.35);
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #f5f6f8; --panel: #ffffff; --panel-2: #f0f1f4; --line: #dfe2e8;
+    --text: #15171c; --muted: #5a6072; --faint: #8b91a1;
+    --accent: #2f6fe0; --warn: #a87a12; --inferred: #7a3fd0;
+    --shadow: 0 8px 24px rgba(20,24,40,.10);
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --bg: #f5f6f8; --panel: #ffffff; --panel-2: #f0f1f4; --line: #dfe2e8;
+  --text: #15171c; --muted: #5a6072; --faint: #8b91a1;
+  --accent: #2f6fe0; --warn: #a87a12; --inferred: #7a3fd0;
+  --shadow: 0 8px 24px rgba(20,24,40,.10);
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 15px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+header {
+  position: sticky; top: 0; z-index: 5; background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(10px); border-bottom: 1px solid var(--line);
+}
+.bar { max-width: 1400px; margin: 0 auto; padding: 14px 16px 10px; display: flex; gap: 12px;
+  align-items: center; flex-wrap: wrap; }
+h1 { font-size: 18px; margin: 0; letter-spacing: -.01em; }
+.tabs { display: flex; gap: 2px; background: var(--panel); border: 1px solid var(--line);
+  border-radius: 10px; padding: 3px; }
+.tab { border: 0; background: none; color: var(--muted); font: inherit; font-size: 13px;
+  padding: 5px 12px; border-radius: 7px; cursor: pointer; }
+.tab[aria-selected="true"] { background: var(--panel-2); color: var(--text); }
+.count { color: var(--muted); font-size: 13px; }
+.search { flex: 1 1 260px; min-width: 0; }
+.search input {
+  width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--line);
+  background: var(--panel); color: var(--text); font: inherit;
+}
+.search input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+.chips { max-width: 1400px; margin: 0 auto; padding: 0 16px 12px; display: flex; gap: 6px;
+  flex-wrap: wrap; align-items: center; }
+.chips .label { font-size: 12px; color: var(--faint); margin-right: 2px; }
+.chip {
+  border: 1px solid var(--line); background: var(--panel); color: var(--muted);
+  padding: 4px 10px; border-radius: 999px; font: inherit; font-size: 13px; cursor: pointer;
+}
+.chip[aria-pressed="true"] { color: var(--bg); background: var(--text); border-color: var(--text); }
+.chip.sep { margin-left: 10px; }
+main { max-width: 1400px; margin: 0 auto; padding: 20px 16px 60px; }
+.grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); }
+.card {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
+  cursor: pointer; display: flex; flex-direction: column; transition: transform .15s, box-shadow .15s;
+  text-align: left; color: inherit; font: inherit; padding: 0;
+}
+.card:hover, .card:focus-visible { transform: translateY(-2px); box-shadow: var(--shadow); }
+.card:focus-visible { outline: 2px solid var(--accent); }
+.frame { position: relative; aspect-ratio: 16 / 10; background: var(--panel-2); overflow: hidden; }
+.frame img, .frame video { position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; }
+.frame video { opacity: 0; transition: opacity .2s; }
+.card.playing .frame video { opacity: 1; }
+.frame .none { position: absolute; inset: 0; display: grid; place-items: center; color: var(--faint);
+  font-size: 13px; background: radial-gradient(circle at 30% 30%, var(--panel-2), var(--panel)); }
+.badge { position: absolute; left: 10px; top: 10px; font-size: 11px; padding: 2px 8px;
+  border-radius: 999px; background: rgba(0,0,0,.6); color: #fff; backdrop-filter: blur(4px); }
+.badge.inferred { background: color-mix(in srgb, var(--inferred) 80%, black); }
+.body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.name { font-weight: 600; font-size: 15px; line-height: 1.3; }
+.muted { color: var(--muted); font-size: 13px; }
+.idea { font-size: 16px; line-height: 1.5; margin: 6px 0 8px; }
+.uses { display: flex; flex-wrap: wrap; gap: 4px; }
+.use { font-size: 12px; padding: 2px 8px; border-radius: 6px; background: var(--panel-2); }
+.io { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; font-size: 12px; }
+.sig { font: 11px ui-monospace, SFMono-Regular, Consolas, monospace; padding: 1px 6px;
+  border-radius: 5px; border: 1px solid var(--line); color: var(--text); }
+.arrow { color: var(--faint); }
+.foot { margin-top: auto; display: flex; justify-content: space-between; align-items: center;
+  gap: 8px; font-size: 12px; color: var(--faint); }
+.unconfirmed { color: var(--warn); }
+.wire { font-size: 13px; line-height: 1.7; }
+.wire .tech { color: var(--accent); cursor: pointer; background: none; border: 0; padding: 0;
+  font: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.gap { color: var(--warn); }
+.empty { color: var(--muted); text-align: center; padding: 60px 0; }
+dialog {
+  width: min(920px, calc(100vw - 32px)); max-height: calc(100vh - 32px); padding: 0;
+  border: 1px solid var(--line); border-radius: 16px; background: var(--panel); color: var(--text);
+  box-shadow: var(--shadow);
+}
+dialog::backdrop { background: rgba(5,6,10,.6); backdrop-filter: blur(3px); }
+.d-media { background: #000; aspect-ratio: 16 / 9; }
+.d-media video { width: 100%; height: 100%; object-fit: contain; display: block; }
+.d-body { padding: 18px 22px 22px; }
+.d-body h2 { margin: 0 0 4px; font-size: 22px; letter-spacing: -.01em; }
+.d-body h3 { font-size: 14px; margin: 18px 0 6px; color: var(--muted); font-weight: 600; }
+.d-meta { display: flex; flex-wrap: wrap; gap: 14px; margin: 12px 0; font-size: 13px;
+  color: var(--muted); align-items: center; }
+.recipe { border-top: 1px solid var(--line); margin-top: 14px; padding-top: 4px; }
+.recipe ol, .recipe ul { padding-left: 22px; }
+.recipe li { margin: 3px 0; }
+.recipe pre { background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px;
+  padding: 10px 12px; overflow-x: auto; font-size: 13px; }
+.srcs { font-size: 13px; color: var(--muted); }
+.srcs a, .d-body a { color: var(--accent); }
+.path { font: 12px ui-monospace, SFMono-Regular, Consolas, monospace; color: var(--faint);
+  word-break: break-all; }
+.close { position: sticky; top: 10px; float: right; margin: 10px 10px 0 0; z-index: 2;
+  border: 1px solid var(--line); background: var(--panel); color: var(--text); border-radius: 999px;
+  width: 34px; height: 34px; cursor: pointer; font-size: 18px; line-height: 1; }
+@media (max-width: 520px) {
+  .grid { grid-template-columns: 1fr; }
+  .d-body { padding: 14px 16px 18px; }
+}
+@media (prefers-reduced-motion: reduce) { .card { transition: none; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <h1>__TITLE__</h1>
+    <div class="tabs" role="tablist" id="tabs"></div>
+    <span class="count" id="count"></span>
+    <label class="search"><input id="q" type="search" placeholder="Search ideas and situations, e.g. dissolve, silhouette, timing" aria-label="Search"></label>
+  </div>
+  <div class="chips" id="chips"></div>
+</header>
+<main>
+  <div class="grid" id="grid"></div>
+  <p class="empty" id="empty" hidden>Nothing matches.</p>
+</main>
+<dialog id="detail" aria-labelledby="d-name"></dialog>
+<script id="data" type="application/json">__DATA__</script>
+<script>
+const DATA = JSON.parse(document.getElementById("data").textContent);
+const byId = Object.fromEntries(DATA.techniques.map(e => [e.id, e]));
+const SIGNALS = ["time", "mask", "coords", "shape", "deform", "color", "particles", "screen", "motion",
+  "normal", "light", "distance", "buffer"];
+const state = { view: "techniques", q: "", signal: null, medium: null };
+const $ = (tag, cls, text) => {
+  const el = document.createElement(tag);
+  if (cls) el.className = cls;
+  if (text != null) el.textContent = text;
+  return el;
+};
+const stamp = t => `${Math.floor(t / 60)}:${String(Math.floor(t) % 60).padStart(2, "0")}`;
+const at = (url, t) => url.includes("youtube.com/watch") ? `${url}&t=${Math.floor(t)}s` : url;
+const link = (href, text) => {
+  const a = $("a", null, text); a.href = href; a.target = "_blank"; a.rel = "noopener"; return a;
+};
+
+function io(e) {
+  const box = $("div", "io");
+  (e.consumes.length ? e.consumes : ["-"]).forEach(s => box.append($("span", "sig", s)));
+  box.append($("span", "arrow", "→"));
+  e.produces.forEach(s => box.append($("span", "sig", s)));
+  return box;
+}
+
+function frame(media, badge, inferred) {
+  const f = $("div", "frame");
+  if (media) {
+    const img = $("img"); img.src = media.thumb; img.alt = ""; img.loading = "lazy"; f.append(img);
+  } else {
+    f.append($("div", "none", "no preview"));
+  }
+  f.append($("span", inferred ? "badge inferred" : "badge", badge));
+  return f;
+}
+
+function hoverPlay(card, media) {
+  if (!media || !media.clip) return; // a studied source has only a still: no clip to hover-play
+  const play = on => {
+    let v = card.querySelector("video");
+    if (on && !v) {
+      v = $("video"); v.src = media.clip; v.muted = true; v.loop = true; v.playsInline = true;
+      card.querySelector(".frame").append(v);
+    }
+    if (!v) return;
+    if (on) v.play().then(() => card.classList.add("playing")).catch(() => {});
+    else { v.pause(); card.classList.remove("playing"); }
+  };
+  card.addEventListener("mouseenter", () => play(true));
+  card.addEventListener("mouseleave", () => play(false));
+  card.addEventListener("focus", () => play(true));
+  card.addEventListener("blur", () => play(false));
+}
+
+function techButton(id) {
+  const e = byId[id];
+  const b = $("button", "tech", e ? e.name : id); b.type = "button";
+  if (e) b.addEventListener("click", ev => { ev.stopPropagation(); openTechnique(e); });
+  return b;
+}
+
+function shell(media, badge, inferred, onClick) {
+  const c = $("button", "card"); c.type = "button";
+  c.append(frame(media, badge, inferred));
+  hoverPlay(c, media);
+  c.addEventListener("click", onClick);
+  return c;
+}
+
+function techniqueCard(e) {
+  const c = shell(e.media, e.signal, false, () => openTechnique(e));
+  const b = $("div", "body");
+  b.append($("div", "name", e.name), $("div", "muted", e.idea), io(e));
+  const uses = $("div", "uses");
+  e.use_when.slice(0, 3).forEach(u => uses.append($("span", "use", u)));
+  b.append(uses);
+  const foot = $("div", "foot");
+  const n = e.sources.length;
+  foot.append($("span", null, e.mediums.join(" · ")),
+    $("span", n > 1 ? "" : "unconfirmed", n > 1 ? `${n} sources` : "1 source"));
+  b.append(foot);
+  c.append(b);
+  return c;
+}
+
+function wiring(links) {
+  const w = $("div", "wire");
+  links.forEach(l => {
+    const row = $("div");
+    row.append(techButton(l.source), ` —${l.signal}→ `, techButton(l.target), ` (${l.role})`);
+    w.append(row);
+  });
+  return w;
+}
+
+function compositionCard(comp) {
+  const first = byId[comp.links[0].source] || byId[comp.links[0].target];
+  const c = shell(first && first.media, "composition", false, () => openComposition(comp));
+  const b = $("div", "body");
+  b.append($("div", "name", comp.name), $("div", "muted", comp.result), wiring(comp.links));
+  c.append(b);
+  return c;
+}
+
+function referenceCard(r) {
+  const c = shell(r.media, `inferred · ${r.made_with || "unknown"}`, true, () => openReference(r));
+  const b = $("div", "body");
+  b.append($("div", "name", r.name), $("div", "muted", r.result));
+  const covered = r.parts.filter(p => p.matches.length).length;
+  const foot = $("div", "foot");
+  foot.append($("span", null, `${covered} of ${r.parts.length} parts buildable`),
+    $("span", r.gaps.length ? "gap" : "", r.gaps.length ? `${r.gaps.length} gaps` : "complete"));
+  b.append(foot);
+  c.append(b);
+  return c;
+}
+
+function dialogShell(media) {
+  const d = document.getElementById("detail");
+  d.replaceChildren();
+  const close = $("button", "close", "×"); close.type = "button"; close.ariaLabel = "Close";
+  close.addEventListener("click", () => d.close());
+  d.append(close);
+  if (media && media.clip) {
+    const m = $("div", "d-media");
+    const v = $("video"); v.src = media.clip; v.poster = media.thumb;
+    v.muted = true; v.loop = true; v.autoplay = true; v.playsInline = true; v.controls = true;
+    m.append(v); d.append(m);
+  } else if (media && media.thumb) {
+    // A studied source: no clip, just its still.
+    const m = $("div", "d-media");
+    const img = $("img"); img.src = media.thumb; img.alt = "";
+    img.style.cssText = "width:100%;height:100%;object-fit:contain";
+    m.append(img); d.append(m);
+  }
+  const b = $("div", "d-body");
+  d.append(b);
+  if (!d.open) d.showModal();
+  d.scrollTop = 0;
+  return b;
+}
+
+function openTechnique(e) {
+  const b = dialogShell(e.media);
+  const h = $("h2", null, e.name); h.id = "d-name";
+  b.append(h, $("p", "idea", e.idea), $("div", "muted", "Result: " + e.result));
+  const meta = $("div", "d-meta");
+  meta.append(io(e), $("span", null, "in " + e.mediums.join(", ")),
+    $("span", null, "seen in " + e.made_with.join(", ")));
+  b.append(meta);
+  const uses = $("div", "uses");
+  e.use_when.forEach(u => uses.append($("span", "use", u)));
+  b.append(uses);
+  const recipe = $("div", "recipe"); recipe.innerHTML = e.html;
+  b.append(recipe);
+  if (e.combos.length) {
+    b.append($("h3", null, "Seen combined with"));
+    const w = $("div", "wire");
+    e.combos.forEach(c => { const row = $("div"); row.append(`${c.dir} `, techButton(c.id), ` via ${c.signal}`); w.append(row); });
+    b.append(w);
+  }
+  b.append($("h3", null, e.sources.length > 1 ? "Sources" : "Source (unconfirmed)"));
+  const ol = $("ol", "srcs");
+  for (const s of e.sources) {
+    const li = $("li");
+    li.append(link(s.url, s.url));
+    if (s.published) li.append(` (${s.published})`);
+    if (s.evidence_level) li.append(` — ${s.evidence_level}; ${s.maturity || "maturity unknown"}`);
+    if (s.citations && s.citations.length) {
+      const refs = $("ul");
+      for (const c of s.citations) {
+        const ref = $("li", null, c.claim + " — ");
+        ref.append(link(c.url, c.locator), `: “${c.quote}”`);
+        refs.append(ref);
+      }
+      li.append(refs);
+    }
+    s.times.forEach((t, i) => { li.append(i ? ", " : " at "); li.append(link(at(s.url, t), stamp(t))); });
+    ol.append(li);
+  }
+  b.append(ol, $("div", "path", e.path));
+}
+
+function openComposition(comp) {
+  const first = byId[comp.links[0].source];
+  const b = dialogShell(first && first.media);
+  const h = $("h2", null, comp.name); h.id = "d-name";
+  b.append(h, $("p", "idea", comp.result), $("h3", null, "Wiring (verified against the video)"));
+  const w = $("div", "wire");
+  comp.links.forEach(l => {
+    const row = $("div");
+    row.append(techButton(l.source), ` —${l.signal}→ `, techButton(l.target), ` drives ${l.role}. ${l.why} `,
+      link(at(comp.url, l.t), stamp(l.t)));
+    w.append(row);
+  });
+  b.append(w, $("h3", null, "Source"), link(comp.url, comp.url));
+}
+
+function openReference(r) {
+  const b = dialogShell(r.media);
+  const h = $("h2", null, r.name); h.id = "d-name";
+  b.append(h, $("p", "idea", r.result),
+    $("div", "muted", "Inferred from the visible result: a hypothesis, not what the creator said."));
+  b.append($("h3", null, "Parts"));
+  const w = $("div", "wire");
+  r.parts.forEach(p => {
+    const row = $("div");
+    row.append($("strong", null, p.what), ` · ${p.signal} · ${p.how} `);
+    if (p.matches.length) { row.append("Build with: "); p.matches.forEach((m, i) => { if (i) row.append(", "); row.append(techButton(m)); }); }
+    else row.append($("span", "gap", `Gap, searching: "${p.search}"`));
+    w.append(row);
+  });
+  b.append(w, $("h3", null, "How the parts combine"), $("p", null, r.composition),
+    $("h3", null, "Source"), link(r.url, r.url));
+}
+
+function styleCard(s) {
+  const media = s.screenshots.length ? { thumb: s.screenshots[0] } : null;
+  const c = shell(media, "style", false, () => openStyle(s));
+  const b = $("div", "body");
+  b.append($("div", "name", s.author || s.id), $("div", "muted", s.credit));
+  c.append(b);
+  return c;
+}
+
+function openStyle(s) {
+  const media = s.screenshots.length ? { thumb: s.screenshots[0] } : null;
+  const b = dialogShell(media);
+  const h = $("h2", null, s.author || s.id); h.id = "d-name";
+  b.append(h, $("div", "muted", s.credit));
+  if (s.home) b.append(link(s.home, s.home));
+  const guide = $("div", "recipe"); guide.innerHTML = s.html;
+  b.append(guide);
+  if (s.screenshots.length > 1) {
+    b.append($("h3", null, "Screenshots"));
+    const grid = $("div", "grid");
+    s.screenshots.forEach(src => {
+      const img = $("img"); img.src = src; img.loading = "lazy";
+      img.style.cssText = "width:100%;border-radius:8px;";
+      grid.append(img);
+    });
+    b.append(grid);
+  }
+}
+
+document.getElementById("detail").addEventListener("close", e => {
+  e.target.querySelectorAll("video").forEach(v => v.pause());
+});
+document.getElementById("detail").addEventListener("click", e => {
+  if (e.target === e.currentTarget) e.currentTarget.close();
+});
+
+const words = () => state.q.split(/\s+/).filter(Boolean);
+const hit = text => words().every(w => text.toLowerCase().includes(w));
+
+const VIEWS = {
+  techniques: {
+    items: () => DATA.techniques.filter(e =>
+      (!state.signal || e.produces.includes(state.signal) || e.consumes.includes(state.signal)) &&
+      (!state.medium || e.mediums.includes(state.medium)) &&
+      hit([e.name, e.idea, e.result, ...e.use_when, ...e.made_with].join(" "))),
+    card: techniqueCard, noun: "techniques",
+  },
+  compositions: {
+    items: () => DATA.compositions.filter(c =>
+      (!state.signal || c.links.some(l => l.signal === state.signal)) &&
+      hit([c.name, c.result, ...c.links.map(l => l.role)].join(" "))),
+    card: compositionCard, noun: "compositions",
+  },
+  references: {
+    items: () => DATA.references.filter(r =>
+      (!state.signal || r.parts.some(p => p.signal === state.signal)) &&
+      hit([r.name, r.result, ...r.parts.map(p => p.what)].join(" "))),
+    card: referenceCard, noun: "references",
+  },
+  styles: {
+    items: () => DATA.styles.filter(s => hit([s.author || "", s.credit, s.home || ""].join(" "))),
+    card: styleCard, noun: "styles",
+  },
+};
+
+function render() {
+  const view = VIEWS[state.view];
+  const shown = view.items();
+  document.getElementById("grid").replaceChildren(...shown.map(view.card));
+  document.getElementById("empty").hidden = shown.length > 0;
+  const total = DATA[state.view].length;
+  document.getElementById("count").textContent = `${shown.length} of ${total} ${view.noun}`;
+}
+
+function chip(text, pressed, onClick, cls = "chip") {
+  const c = $("button", cls, text); c.type = "button";
+  c.setAttribute("aria-pressed", String(pressed));
+  c.addEventListener("click", onClick);
+  return c;
+}
+
+function drawChips() {
+  const used = new Set(DATA.techniques.flatMap(e => [...e.produces, ...e.consumes]));
+  const mediums = [...new Set(DATA.techniques.flatMap(e => e.mediums))].sort();
+  const set = (k, v) => () => { state[k] = state[k] === v ? null : v; drawChips(); render(); };
+  const box = document.getElementById("chips");
+  box.replaceChildren($("span", "label", "Signal"),
+    chip("any", !state.signal, set("signal", state.signal)),
+    ...SIGNALS.filter(s => used.has(s)).map(s => chip(s, state.signal === s, set("signal", s))));
+  if (state.view === "techniques" && mediums.length) {
+    box.append($("span", "label chip sep", "In"));
+    mediums.forEach(m => box.append(chip(m, state.medium === m, set("medium", m))));
+  }
+}
+
+function drawTabs() {
+  const tabs = document.getElementById("tabs");
+  tabs.replaceChildren(...Object.keys(VIEWS).map(v => {
+    const t = $("button", "tab", `${v} (${DATA[v].length})`); t.type = "button";
+    t.setAttribute("role", "tab"); t.setAttribute("aria-selected", String(state.view === v));
+    t.addEventListener("click", () => { state.view = v; drawTabs(); drawChips(); render(); });
+    return t;
+  }));
+}
+
+document.getElementById("q").addEventListener("input", e => {
+  state.q = e.target.value.trim().toLowerCase(); render();
+});
+drawTabs();
+drawChips();
+render();
+</script>
+</body>
+</html>
