@@ -1,5 +1,8 @@
 # Distill
 
+Read `LLM_GUIDE.md` for setup and operating commands. `README.md` is the plain-language
+introduction for people.
+
 `SPEC.md` is the source of truth. Read the relevant section before changing a stage, and update
 it when a decision changes.
 
